@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} nix-docker.registry.twcstorage.ru/ci/build/dotnet-build:9.0002 AS builder
+FROM --platform=${BUILDPLATFORM} nix-docker.registry.twcstorage.ru/ci/build/dotnet-build:9.0004 AS builder
 
 ARG TARGETARCH
 ARG GITHUB_USERNAME
