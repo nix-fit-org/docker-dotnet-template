@@ -1,7 +1,9 @@
-FROM --platform=${BUILDPLATFORM} nix-docker.registry.twcstorage.ru/ci/build/dotnet-build:9.0004 AS builder
+FROM --platform=${BUILDPLATFORM} nix-docker.registry.twcstorage.ru/ci/build/dotnet-build:9.0007 AS builder
 
 ARG TARGETARCH
 ARG GITHUB_USERNAME
+# Path to main .csproj (always set by pipeline).
+ARG CSPROJ_PATH
 
 WORKDIR /src
 
@@ -13,21 +15,15 @@ ENV DOTNET_NOLOGO=true \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-COPY --chown=1000:1000 *.csproj ./
-COPY --chown=1000:1000 nuget.confi[g] Directory.Packages.prop[s] Directory.Build.* ./
-
-RUN --mount=type=secret,id=github_token,uid=1000,gid=1000 \
-    GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
-    export GITHUB_TOKEN && \
-    DOTNET_RID="linux-${TARGETARCH/amd64/x64}" && \
-    dotnet restore ./*.csproj \
-        -r "$DOTNET_RID" \
-        -p:SelfContained=true
-
 COPY --chown=1000:1000 . .
 
+RUN --mount=type=secret,id=github_token,uid=1000,gid=1000 \
+    GITHUB_TOKEN=$(cat /run/secrets/github_token) && export GITHUB_TOKEN && \
+    DOTNET_RID="linux-${TARGETARCH/amd64/x64}" && \
+    dotnet restore "$CSPROJ_PATH" -r "$DOTNET_RID" -p:SelfContained=true
+
 RUN DOTNET_RID="linux-${TARGETARCH/amd64/x64}" && \
-    dotnet publish ./*.csproj \
+    dotnet publish "$CSPROJ_PATH" \
         --no-restore \
         --configuration Release \
         -r "$DOTNET_RID" \
