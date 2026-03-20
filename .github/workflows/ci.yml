@@ -1,0 +1,9 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+
+jobs:
+  lint:
+    uses: nix-fit-org/nix-github-workflows/.github/workflows/lint-dockerfile.yml@main
